@@ -8,14 +8,18 @@ networks:
 services:
   db:
     image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password    
     container_name: db
     restart: unless-stopped
     env_file: .env
     environment:
-      - MYSQL_DATABASE=wordpress
+      MYSQL_DATABASE: wordpress
+      DB_TZ: $DB_TZ
+
     volumes:
       - ./data/dbdata:/var/lib/mysql
-    command: '--default-authentication-plugin=mysql_native_password'
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
 
   wordpress:
     depends_on:
@@ -39,18 +43,18 @@ services:
     container_name: webserver
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8992:80"
     volumes:
       - ./data/wordpress:/var/www/html
       - ./nginx-conf:/etc/nginx/conf.d
       - ./data/certbot-etc:/etc/letsencrypt
 
-  certbot:
-    depends_on:
-      - webserver
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./data/certbot-etc:/etc/letsencrypt
-      - ./data/wordpress:/var/www/html
-    command: certonly --webroot --webroot-path=/var/www/html --email sammy@your_domain --agree-tos --no-eff-email --staging -d your_domain -d www.your_domain
+  # certbot:
+  #   depends_on:
+  #     - webserver
+  #   image: certbot/certbot
+  #   container_name: certbot
+  #   volumes:
+  #     - ./data/certbot-etc:/etc/letsencrypt
+  #     - ./data/wordpress:/var/www/html
+  #   command: certonly --webroot --webroot-path=/var/www/html --email amit@khare.co.in --agree-tos --no-eff-email --staging -d khabar91.in -d www.khabar91.in
