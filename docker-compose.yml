@@ -1,9 +1,9 @@
 version: '3.8'
 
 networks:
-  default:
-    external: true
-    name: apps-network
+  app-network:
+    # external: true
+    name: app-network
 
 services:
   db:
@@ -15,11 +15,12 @@ services:
     environment:
       MYSQL_DATABASE: wordpress
       DB_TZ: $DB_TZ
-
     volumes:
       - ./data/dbdata:/var/lib/mysql
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+    networks:
+      - app-network
 
   wordpress:
     depends_on:
@@ -40,6 +41,8 @@ services:
       - ./data/wordpress:/var/www/html
       - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
       - ./uploads.ini:/usr/local/etc/php8.3/conf.d/uploads.ini
+    networks:
+      - app-network
       
   webserver:
     depends_on:
@@ -48,12 +51,13 @@ services:
     container_name: webserver
     restart: unless-stopped
     ports:
-      - "8992:80"
+      - "8993:80"
     volumes:
       - ./data/wordpress:/var/www/html
       - ./nginx-conf:/etc/nginx/conf.d
       - ./data/certbot-etc:/etc/letsencrypt
-
+    networks:
+      - app-network
   # certbot:
   #   depends_on:
   #     - webserver
@@ -63,3 +67,5 @@ services:
   #     - ./data/certbot-etc:/etc/letsencrypt
   #     - ./data/wordpress:/var/www/html
   #   command: certonly --webroot --webroot-path=/var/www/html --email amit@khare.co.in --agree-tos --no-eff-email --staging -d khabar91.in -d www.khabar91.in
+  #   networks:
+  #     - app-network
